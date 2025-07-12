@@ -1,0 +1,157 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 12H16M8 16H16M8 8H16M6 20H18C18.5304 20 19.0391 19.7893 19.4142 19.4142C19.7893 19.0391 20 18.5304 20 18V6C20 5.46957 19.7893 4.96086 19.4142 4.58579C19.0391 4.21071 18.5304 4 18 4H6C5.46957 4 4.96086 4.21071 4.58579 4.58579C4.21071 4.96086 4 5.46957 4 6V18C4 18.5304 4.21071 19.0391 4.58579 19.4142C4.96086 19.7893 5.46957 20 6 20Z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Sujets de Discussion
+        </h1>
+      </div>
+      <button class="btn btn-primary" (click)="toggleForm()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Nouveau sujet
+      </button>
+    </div>
+  </div>
+
+  @if (showForm) {
+    <div class="form-overlay">
+      <form (ngSubmit)="submitForm()" class="modern-form">
+        <div class="form-header">
+          <h3>{{ editingSujet ? 'Modifier le sujet' : 'Créer un nouveau sujet' }}</h3>
+          <button type="button" class="btn-close" (click)="toggleForm()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="form-body">
+          <div class="form-group">
+            <label for="sujetTitle" class="form-label">Titre du sujet</label>
+            <input
+              id="sujetTitle"
+              [(ngModel)]="newSujet"
+              name="newSujet"
+              class="form-input"
+              placeholder="Ex: Questions sur le projet final"
+              required>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="toggleForm()">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            {{ editingSujet ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="loading-spinner-large"></div>
+      <p>Chargement des sujets...</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <h3>Erreur de chargement</h3>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="loadSujets()">Réessayer</button>
+    </div>
+  }
+
+  @if (!isLoading && !error) {
+    <div class="content-container">
+      <div class="sujets-grid">
+        @for (s of sujets; track s.id) {
+          <div class="subject-card" (click)="goToPosts(s.id)">
+            <div class="subject-header">
+              <div class="subject-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 12H16M8 16H16M8 8H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="subject-details">
+                <h3 class="subject-title">{{ s.titre }}</h3>
+                <p class="subject-meta">Créé le {{ s.created | date:'short' }}</p>
+              </div>
+            </div>
+            <div class="subject-meta-group">
+              <span class="badge">{{ s.postCount }} message(s)</span>
+              @if (s.lastPostDate) {
+                <span class="last-post">
+                  Dernier : {{ s.lastPostDate }}<br>
+                  <span class="text-muted">par {{ s.lastPostAuthor }}</span>
+                </span>
+              }
+              @if (!s.lastPostDate) {
+                <span class="text-muted">Aucun message</span>
+              }
+            </div>
+            @if (isOwner(s)) {
+              <div class="subject-actions" (click)="$event.stopPropagation()">
+                <button class="btn-icon btn-icon-edit" (click)="editSujet(s)" title="Modifier">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 4H4C3.47 4 2.96 4.21 2.59 4.59C2.21 4.96 2 5.47 2 6V20C2 20.53 2.21 21.04 2.59 21.41C2.96 21.79 3.47 22 4 22H18C18.53 22 19.04 21.79 19.41 21.41C19.79 21.04 20 20.53 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M18.5 2.5C18.9 2.1 19.44 1.88 20 1.88C20.56 1.88 21.1 2.1 21.5 2.5C21.9 2.9 22.12 3.44 22.12 4C22.12 4.56 21.9 5.1 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <button class="btn-icon btn-icon-delete" (click)="deleteSujet(s)" title="Supprimer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6H5H21M8 6V4C8 3.47 8.21 2.96 8.59 2.59C8.96 2.21 9.47 2 10 2H14C14.53 2 15.04 2.21 15.41 2.59C15.79 2.96 16 3.47 16 4V6M19 6V20C19 20.53 18.79 21.04 18.41 21.41C18.04 21.79 17.53 22 17 22H7C6.47 22 5.96 21.79 5.59 21.41C5.21 21.04 5 20.53 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Pagination -->
+        <div class="modern-pagination">
+          <div class="pagination-info">
+            <span class="text-muted">{{ sujets.length }} sujets • Page {{ currentPage }} sur {{ totalPages }}</span>
+          </div>
+          <div class="pagination-controls">
+            <button class="pagination-btn" [class.disabled]="currentPage === 1" [disabled]="currentPage === 1" (click)="prevPage()" title="Page précédente">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            @for (page of pageNumbers(); track page) {
+              <button
+                class="pagination-page-btn"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+            }
+
+            <button class="pagination-btn" [class.disabled]="currentPage === totalPages" [disabled]="currentPage === totalPages" (click)="nextPage()" title="Page suivante">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="pagination-size">
+            <label class="text-muted">Sujets par page :</label>
+            <select class="pagination-select" [(ngModel)]="perPage" (change)="onPerPageChange()">
+              <option value="6">6</option>
+              <option value="9">9</option>
+              <option value="18">18</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

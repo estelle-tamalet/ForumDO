@@ -1,0 +1,104 @@
+<div class="posts-container">
+  @if (sujet) {
+    <div class="posts-header">
+      <h2>{{ sujet.titre }}</h2>
+      <div class="breadcrumb">
+        <a routerLink="/cours">Cours</a> /
+        @if (sujet.cours && sujet.cours !== '') {
+          <a [routerLink]="['/cours', sujet.cours, 'sujets']">{{ sujet.expand?.cours?.title || 'Retour aux sujets' }}</a>
+        } @else {
+          <span>Cours inconnu</span>
+        }
+         /
+        {{ sujet.titre }}
+      </div>
+    </div>
+  } @else {
+    <div class="posts-header">
+      <h2>Messages du sujet</h2>
+    </div>
+  }
+
+  <div class="posts-actions">
+    <button class="add-post-btn" (click)="togglePostForm()">➕ Nouveau message</button>
+  </div>
+
+  @if (showPostForm) {
+    <form (ngSubmit)="submitForm()" class="create-post-form">
+      <h3>{{ editingPost ? 'Modifier le message' : 'Nouveau message' }}</h3>
+      <textarea
+        [(ngModel)]="newPost"
+        name="newPost"
+        placeholder="Écrivez votre message..."
+        required>
+      </textarea>
+      <div class="form-actions">
+        <button type="submit">{{ editingPost ? 'Modifier' : 'Publier' }}</button>
+        <button type="button" (click)="togglePostForm()">Annuler</button>
+      </div>
+    </form>
+  }
+
+  @if (posts.length > 0) {
+    <div class="posts-list">
+      @for (p of posts; track p.id) {
+        <div class="post-item">
+          <div class="post-content">{{ p.contenu }}</div>
+          <div class="post-meta">
+            <div class="post-author">
+              📝 Par {{ p.expand?.auteur?.email || 'Utilisateur inconnu' }}
+              <small> • {{ p.created | date:'short' }}</small>
+            </div>
+            @if (isOwner(p)) {
+              <div class="post-actions">
+                <button class="edit-btn" (click)="editPost(p)">✏️</button>
+                <button class="delete-btn" (click)="deletePost(p)">🗑️</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="pagination-container">
+      <div class="pagination-info">
+        <span>{{ posts.length }} messages • Page {{ currentPage }} sur {{ totalPages }}</span>
+      </div>
+
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button [disabled]="currentPage === 1" (click)="prevPage()">← Précédent</button>
+          @for (pageNum of getPageNumbers(); track pageNum) {
+            <button
+              [class.active]="currentPage === pageNum"
+              (click)="goToPage(pageNum)">
+              {{ pageNum }}
+            </button>
+          }
+          @if (totalPages > 5) {
+            <span>...</span>
+            <button
+              [class.active]="currentPage === totalPages"
+              (click)="goToPage(totalPages)">
+              {{ totalPages }}
+            </button>
+          }
+          <button [disabled]="currentPage === totalPages" (click)="nextPage()">Suivant →</button>
+        </div>
+      }
+
+      <div class="pagination-controls">
+        <label>Messages par page:</label>
+        <select [(ngModel)]="itemsPerPage" (change)="onPageSizeChange()">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+    </div>
+  } @else {
+    <div class="no-posts">
+      <p>💬 Aucun message dans ce sujet pour le moment.<br>Soyez le premier à participer à la discussion !</p>
+    </div>
+  }
+</div>
