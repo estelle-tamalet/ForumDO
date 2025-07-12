@@ -42,7 +42,7 @@ Créez les collections suivantes dans l'interface d'administration PocketBase :
 
 #### Collection `users` (utilisateurs)
 - **Type** : Auth collection
-- **Champs par défaut** : email, password, nom, etc.
+- **Champs par défaut** : email, password, name, etc.
 - **Règles API** :
   - List/Search : `id = @request.auth.id`
   - View : `id = @request.auth.id`

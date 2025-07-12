@@ -77,7 +77,7 @@ export class SujetsComponent implements OnInit {
 
                 const lastPost = sortedPosts[0];
                 lastPostDate = this.formatDate(lastPost.created);
-                lastPostAuthor = lastPost.expand?.auteur?.username || 'Utilisateur inconnu';
+                lastPostAuthor = lastPost.expand?.auteur?.name || 'Utilisateur inconnu';
               }
 
               sujetsEnrichis[index] = {
